@@ -21,4 +21,9 @@
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  * PrestaShop is an internationally registered trademark & property of PrestaShop SA
 *}
-<li><a data-toggle="tab" href="#blockbestsellers" class="blockbestsellers">{l s='Best Sellers' mod='blockbestsellers'}</a></li>
+<li><a data-toggle="tab"
+       href="#blockbestsellers"
+       class="blockbestsellers"
+  >{l s='Best Sellers' mod='blockbestsellers'}
+  </a>
+</li>

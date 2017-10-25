@@ -45,7 +45,7 @@ class BlockBestSellers extends Module
     {
         $this->name = 'blockbestsellers';
         $this->tab = 'front_office_features';
-        $this->version = '2.0.0';
+        $this->version = '2.0.1';
         $this->author = 'thirty bees';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -54,7 +54,6 @@ class BlockBestSellers extends Module
 
         $this->displayName = $this->l('Top-sellers block');
         $this->description = $this->l('Adds a block displaying your store\'s top-selling products.');
-        $this->ps_versions_compliancy = ['min' => '1.6', 'max' => '1.6.99.99'];
     }
 
     /**
