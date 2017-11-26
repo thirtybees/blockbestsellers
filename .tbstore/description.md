@@ -1,0 +1,1 @@
+The thirty bees block best sellers module allows you to place a block on either your home page or in the right or left column of your site displaying the best selling products on your site. This module is useful for showing users what products have the best sells to entice them into making purchases.
