@@ -2,7 +2,7 @@
 /**
  * 2007-2016 PrestaShop
  *
- * Thirty Bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
+ * thirty bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
  * Copyright (C) 2017-2018 thirty bees
  *
  * NOTICE OF LICENSE
@@ -15,7 +15,7 @@
  * obtain it through the world-wide-web, please send an email
  * to license@thirtybees.com so we can send you a copy immediately.
  *
- * @author    Thirty Bees <modules@thirtybees.com>
+ * @author    thirty bees <contact@thirtybees.com>
  * @author    PrestaShop SA <contact@prestashop.com>
  * @copyright 2017-2018 thirty bees
  * @copyright 2007-2016 PrestaShop SA
@@ -34,18 +34,24 @@ if (!defined('_TB_VERSION_')) {
  */
 class BlockBestSellers extends Module
 {
+    const CACHE_TTL = 'PS_BLOCK_BESTSELLERS_TTL';
+    const CACHE_TIMESTAMP = 'PS_BLOCK_BESTSELLERS_TIMESTAMP';
+    const BESTSELLERS_DISPLAY = 'PS_BLOCK_BESTSELLERS_DISPLAY';
+    const BESTSELLERS_TO_DISPLAY = 'PS_BLOCK_BESTSELLERS_TO_DISPLAY';
+
     protected static $cacheBestSellers;
 
     /**
      * BlockBestSellers constructor.
      *
      * @since 1.0.0
+     * @throws PrestaShopException
      */
     public function __construct()
     {
         $this->name = 'blockbestsellers';
         $this->tab = 'front_office_features';
-        $this->version = '2.0.1';
+        $this->version = '2.1.0';
         $this->author = 'thirty bees';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -54,16 +60,22 @@ class BlockBestSellers extends Module
 
         $this->displayName = $this->l('Top-sellers block');
         $this->description = $this->l('Adds a block displaying your store\'s top-selling products.');
+
+//        if (Configuration::get(static::CACHE_TIMESTAMP) < (time() - Configuration::get(static::CACHE_TTL))) {
+            $this->clearCache();
+//        }
     }
 
     /**
      * @return bool
      *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      * @since 1.0.0
      */
     public function install()
     {
-        $this->clearCache('*');
+        $this->clearCache();
 
         if (!parent::install()
             || !$this->registerHook('header')
@@ -79,87 +91,105 @@ class BlockBestSellers extends Module
             return false;
         }
 
-        Configuration::updateValue('PS_BLOCK_BESTSELLERS_TO_DISPLAY', 10);
+        Configuration::updateValue(static::BESTSELLERS_TO_DISPLAY, 10);
 
         return true;
     }
 
     /**
-     * @param string      $template
-     * @param string|null $cacheId
-     * @param string|null $compileId
-     *
      * @since 1.0.0
      */
-    public function clearCache($template, $cacheId = null, $compileId = null)
+    public function clearCache()
     {
-        parent::_clearCache('blockbestsellers.tpl', 'blockbestsellers-col');
-        parent::_clearCache('blockbestsellers-home.tpl', 'blockbestsellers-home');
-        parent::_clearCache('tab.tpl', 'blockbestsellers-tab');
+        try {
+            $caches = [
+                'blockbestsellers.tpl'      => 'blockbestsellers-col',
+                'blockbestsellers-home.tpl' => 'blockbestsellers-home',
+                'tab.tpl'                   => 'blockbestsellers-tab',
+            ];
+
+            foreach ($caches as $template => $cacheId) {
+                Tools::clearCache(Context::getContext()->smarty, $this->getTemplatePath($template), $cacheId);
+            }
+
+            Configuration::updateValue(static::CACHE_TIMESTAMP, time());
+        } catch (Exception $e) {
+            Logger::addLog("Block best sellers module: {$e->getMessage()}");
+        }
     }
 
     /**
      * @return bool
      *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      * @since 1.0.0
      */
     public function uninstall()
     {
-        $this->clearCache('*');
+        $this->clearCache();
 
         return parent::uninstall();
     }
 
     /**
-     * @param array $params
-     *
      * @since 1.0.0
      */
-    public function hookAddProduct($params)
+    public function hookAddProduct()
     {
-        $this->clearCache('*');
+        $this->clearCache();
     }
 
     /**
-     * @param array $params
-     *
      * @since 1.0.0
      */
-    public function hookUpdateProduct($params)
+    public function hookUpdateProduct()
     {
-        $this->clearCache('*');
+        $this->clearCache();
     }
 
     /**
-     * @param array $params
-     *
      * @since 1.0.0
      */
-    public function hookDeleteProduct($params)
+    public function hookDeleteProduct()
     {
-        $this->clearCache('*');
+        $this->clearCache();
     }
 
     /**
-     * @param array $params
-     *
      * @since 1.0.0
      */
-    public function hookActionOrderStatusPostUpdate($params)
+    public function hookActionOrderStatusPostUpdate()
     {
-        $this->clearCache('*');
+        $this->clearCache();
     }
 
     /**
      * Called in administration -> module -> configure
+     *
+     * @return string
+     * @throws Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws SmartyException
      */
     public function getContent()
     {
         $output = '';
         if (Tools::isSubmit('submitBestSellers')) {
-            Configuration::updateValue('PS_BLOCK_BESTSELLERS_DISPLAY', (int) Tools::getValue('PS_BLOCK_BESTSELLERS_DISPLAY'));
-            Configuration::updateValue('PS_BLOCK_BESTSELLERS_TO_DISPLAY', (int) Tools::getValue('PS_BLOCK_BESTSELLERS_TO_DISPLAY'));
-            $this->clearCache('*');
+            Configuration::updateValue(
+                static::BESTSELLERS_DISPLAY,
+                (int) Tools::getValue(static::BESTSELLERS_DISPLAY)
+            );
+            Configuration::updateValue(
+                static::BESTSELLERS_TO_DISPLAY,
+                (int) Tools::getValue(static::BESTSELLERS_TO_DISPLAY)
+            );
+            Configuration::updateValue(
+                static::CACHE_TTL,
+                (int) Tools::getValue(static::CACHE_TTL) * 60
+            );
+            $this->clearCache();
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
 
@@ -169,6 +199,10 @@ class BlockBestSellers extends Module
     /**
      * @return string
      *
+     * @throws Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws SmartyException
      * @since 1.0.0
      */
     public function renderForm()
@@ -179,18 +213,18 @@ class BlockBestSellers extends Module
                     'title' => $this->l('Settings'),
                     'icon'  => 'icon-cogs',
                 ],
-                'input'  => [
+                'input' => [
                     [
                         'type'  => 'text',
                         'label' => $this->l('Products to display'),
-                        'name'  => 'PS_BLOCK_BESTSELLERS_TO_DISPLAY',
+                        'name'  => static::BESTSELLERS_TO_DISPLAY,
                         'desc'  => $this->l('Determine the number of product to display in this block'),
                         'class' => 'fixed-width-xs',
                     ],
                     [
                         'type'    => 'switch',
                         'label'   => $this->l('Always display this block'),
-                        'name'    => 'PS_BLOCK_BESTSELLERS_DISPLAY',
+                        'name'    => static::BESTSELLERS_DISPLAY,
                         'desc'    => $this->l('Show the block even if no best sellers are available.'),
                         'is_bool' => true,
                         'values'  => [
@@ -206,6 +240,14 @@ class BlockBestSellers extends Module
                             ],
                         ],
                     ],
+                    [
+                        'type'   => 'text',
+                        'label'  => $this->l('Cache lifetime'),
+                        'name'   => static::CACHE_TTL,
+                        'desc'   => $this->l('Determines for how long the bestseller block stays cached'),
+                        'suffix' => $this->l('Minutes'),
+                        'class'  => 'fixed-width-xs',
+                    ],
                 ],
                 'submit' => [
                     'title' => $this->l('Save'),
@@ -218,12 +260,15 @@ class BlockBestSellers extends Module
         $helper->table = $this->table;
         $lang = new Language((int) Configuration::get('PS_LANG_DEFAULT'));
         $helper->default_form_language = $lang->id;
-        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG')
+            ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG')
+            : 0;
         $this->fields_form = [];
 
         $helper->identifier = $this->identifier;
         $helper->submit_action = 'submitBestSellers';
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
+            .'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->tpl_vars = [
             'fields_value' => $this->getConfigFieldsValues(),
@@ -238,21 +283,31 @@ class BlockBestSellers extends Module
      * @return array
      *
      * @since 1.0.0
+     * @throws PrestaShopException
      */
     public function getConfigFieldsValues()
     {
         return [
-            'PS_BLOCK_BESTSELLERS_TO_DISPLAY' => (int) Tools::getValue('PS_BLOCK_BESTSELLERS_TO_DISPLAY', Configuration::get('PS_BLOCK_BESTSELLERS_TO_DISPLAY')),
-            'PS_BLOCK_BESTSELLERS_DISPLAY'    => (int) Tools::getValue('PS_BLOCK_BESTSELLERS_DISPLAY', Configuration::get('PS_BLOCK_BESTSELLERS_DISPLAY')),
+            static::BESTSELLERS_TO_DISPLAY => (int) Tools::getValue(
+                static::BESTSELLERS_TO_DISPLAY,
+                Configuration::get(static::BESTSELLERS_TO_DISPLAY)
+            ),
+            static::BESTSELLERS_DISPLAY    => (int) Tools::getValue(
+                static::BESTSELLERS_DISPLAY,
+                Configuration::get(static::BESTSELLERS_DISPLAY)
+            ),
+            static::CACHE_TTL              => (int) Tools::getValue(
+                    static::CACHE_TTL,
+                    Configuration::get(static::CACHE_TTL) / 60
+                ),
         ];
     }
 
     /**
-     * @param $params
-     *
      * @since 1.0.0
+     * @throws PrestaShopException
      */
-    public function hookHeader($params)
+    public function hookHeader()
     {
         if (Configuration::get('PS_CATALOG_MODE')) {
             return;
@@ -264,16 +319,18 @@ class BlockBestSellers extends Module
     }
 
     /**
-     * @param $params
-     *
      * @return bool|string
      *
+     * @throws Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws SmartyException
      * @since 1.0.0
      */
-    public function hookDisplayHomeTab($params)
+    public function hookDisplayHomeTab()
     {
         if (!$this->isCached('tab.tpl', $this->getCacheId('blockbestsellers-tab'))) {
-            self::$cacheBestSellers = $this->getBestSellers($params);
+            self::$cacheBestSellers = $this->getBestSellers();
             $this->smarty->assign('best_sellers', self::$cacheBestSellers);
         }
 
@@ -285,23 +342,26 @@ class BlockBestSellers extends Module
     }
 
     /**
-     * @param array $params
-     *
      * @return array|bool
      *
      * @since 1.0.0
+     * @throws PrestaShopException
      */
-    protected function getBestSellers($params)
+    protected function getBestSellers()
     {
         if (Configuration::get('PS_CATALOG_MODE')) {
             return false;
         }
 
-        if (!($result = ProductSale::getBestSalesLight((int) $params['cookie']->id_lang, 0, (int) Configuration::get('PS_BLOCK_BESTSELLERS_TO_DISPLAY')))) {
-            return (Configuration::get('PS_BLOCK_BESTSELLERS_DISPLAY') ? [] : false);
+        if (!($result = ProductSale::getBestSalesLight(
+            (int) $this->context->language->id,
+            0,
+            (int) Configuration::get(static::BESTSELLERS_TO_DISPLAY)))
+        ) {
+            return (Configuration::get(static::BESTSELLERS_DISPLAY) ? [] : false);
         }
 
-        $currency = new Currency($params['cookie']->id_currency);
+        $currency = new Currency($this->context->currency->id);
         $usetax = (Product::getTaxCalculationMethod((int) $this->context->customer->id) != PS_TAX_EXC);
         foreach ($result as &$row) {
             $row['price'] = Tools::displayPrice(Product::getPriceStatic((int) $row['id_product'], $usetax), $currency);
@@ -311,25 +371,29 @@ class BlockBestSellers extends Module
     }
 
     /**
-     * @param array $params
-     *
      * @return bool|string
      *
+     * @throws Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws SmartyException
      * @since 1.0.0
      */
-    public function hookDisplayHomeTabContent($params)
+    public function hookDisplayHomeTabContent()
     {
-        return $this->hookDisplayHome($params);
+        return $this->hookDisplayHome();
     }
 
     /**
-     * @param array $params
-     *
      * @return bool|string
      *
+     * @throws Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws SmartyException
      * @since 1.0.0
      */
-    public function hookDisplayHome($params)
+    public function hookDisplayHome()
     {
         if (!$this->isCached('blockbestsellers-home.tpl', $this->getCacheId('blockbestsellers-home'))) {
             $this->smarty->assign(
@@ -344,38 +408,46 @@ class BlockBestSellers extends Module
             return false;
         }
 
-        return $this->display(__FILE__, 'blockbestsellers-home.tpl', $this->getCacheId('blockbestsellers-home'));
+        return $this->display(
+            __FILE__,
+            'blockbestsellers-home.tpl',
+            $this->getCacheId('blockbestsellers-home')
+        );
     }
 
     /**
-     * @param array $params
-     *
      * @return bool|string
      *
+     * @throws Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws SmartyException
      * @since 1.0.0
      */
-    public function hookLeftColumn($params)
+    public function hookLeftColumn()
     {
-        return $this->hookRightColumn($params);
+        return $this->hookRightColumn();
     }
 
     /**
-     * @param array $params
-     *
      * @return bool|string
      *
+     * @throws Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws SmartyException
      * @since 1.0.0
      */
-    public function hookRightColumn($params)
+    public function hookRightColumn()
     {
         if (!$this->isCached('blockbestsellers.tpl', $this->getCacheId('blockbestsellers-col'))) {
             if (!isset(self::$cacheBestSellers)) {
-                self::$cacheBestSellers = $this->getBestSellers($params);
+                self::$cacheBestSellers = $this->getBestSellers();
             }
             $this->smarty->assign(
                 [
                     'best_sellers'             => self::$cacheBestSellers,
-                    'display_link_bestsellers' => Configuration::get('PS_DISPLAY_BEST_SELLERS'),
+                    'display_link_bestsellers' => Configuration::get(static::BESTSELLERS_DISPLAY),
                     'mediumSize'               => Image::getSize(ImageType::getFormatedName('medium')),
                     'smallSize'                => Image::getSize(ImageType::getFormatedName('small')),
                 ]

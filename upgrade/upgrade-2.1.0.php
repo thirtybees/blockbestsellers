@@ -1,4 +1,5 @@
-{*
+<?php
+/**
  * 2007-2016 PrestaShop
  *
  * thirty bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
@@ -19,11 +20,18 @@
  * @copyright 2017-2018 thirty bees
  * @copyright 2007-2016 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * PrestaShop is an internationally registered trademark & property of PrestaShop SA
-*}
-<li><a data-toggle="tab"
-       href="#blockbestsellers"
-       class="blockbestsellers"
-  >{l s='Best Sellers' mod='blockbestsellers'}
-  </a>
-</li>
+ *  PrestaShop is an internationally registered trademark & property of PrestaShop SA
+ */
+
+if (!defined('_TB_VERSION_')) {
+    exit;
+}
+
+function upgrade_module_2_1_0($module)
+{
+    Configuration::updateValue('PS_BLOCK_BESTSELLERS_TTL', 300); // Cache for max 5 minutes
+
+    $module->clearCache();
+
+    return true;
+}

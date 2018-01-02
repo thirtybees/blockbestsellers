@@ -2,7 +2,7 @@
 /**
  * 2007-2016 PrestaShop
  *
- * Thirty Bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
+ * thirty bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
  * Copyright (C) 2017-2018 thirty bees
  *
  * NOTICE OF LICENSE
@@ -21,7 +21,7 @@
  * versions in the future. If you wish to customize PrestaShop for your
  * needs please refer to https://www.thirtybees.com for more information.
  *
- *  @author    Thirty Bees <contact@thirtybees.com>
+ *  @author    thirty bees <contact@thirtybees.com>
  *  @author    PrestaShop SA <contact@prestashop.com>
  *  @copyright 2017-2018 thirty bees
  *  @copyright 2007-2016 PrestaShop SA
