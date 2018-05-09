@@ -1,1 +1,7 @@
-*blockbestsellers*.zip
+
+/translations/*
+!/translations/index.php
+
+/config*.xml
+
+blockbestsellers-*.zip
