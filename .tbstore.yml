@@ -11,4 +11,5 @@ description_short: The block best sellers module allows you to place best sellin
 description: description.md
 images:
   - image-1.png
+gdpr_compliant: true
 license: MIT
