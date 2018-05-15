@@ -58,7 +58,7 @@ class BlockBestSellers extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->l('Top-sellers block');
+        $this->displayName = $this->l('Block Best Sellers');
         $this->description = $this->l('Adds a block displaying your store\'s top-selling products.');
 
         if (Configuration::get(static::CACHE_TIMESTAMP) < (time() - Configuration::get(static::CACHE_TTL))) {
