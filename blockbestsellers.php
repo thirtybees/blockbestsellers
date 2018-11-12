@@ -38,7 +38,8 @@ class BlockBestSellers extends Module
     const CACHE_TIMESTAMP = 'PS_BLOCK_BESTSELLERS_TIMESTAMP';
     const BESTSELLERS_DISPLAY = 'PS_BLOCK_BESTSELLERS_DISPLAY';
     const BESTSELLERS_TO_DISPLAY = 'PS_BLOCK_BESTSELLERS_TO_DISPLAY';
-
+    const BESTSELLERS_PRICE_ABOVE = 'PS_BLOCK_BESTSELLERS_PRICE_ABOVE';
+    
     protected static $cacheBestSellers;
 
     /**
@@ -51,7 +52,7 @@ class BlockBestSellers extends Module
     {
         $this->name = 'blockbestsellers';
         $this->tab = 'front_office_features';
-        $this->version = '2.1.2';
+        $this->version = '2.1.3';
         $this->author = 'thirty bees';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -93,6 +94,7 @@ class BlockBestSellers extends Module
         }
 
         Configuration::updateValue(static::BESTSELLERS_TO_DISPLAY, 10);
+        Configuration::updateValue(static::BESTSELLERS_PRICE_ABOVE, 0);
 
         return true;
     }
@@ -187,6 +189,10 @@ class BlockBestSellers extends Module
                 (int) Tools::getValue(static::BESTSELLERS_TO_DISPLAY)
             );
             Configuration::updateValue(
+                static::BESTSELLERS_PRICE_ABOVE,
+                (double) Tools::getValue(static::BESTSELLERS_PRICE_ABOVE)
+            );
+            Configuration::updateValue(
                 static::CACHE_TTL,
                 (int) Tools::getValue(static::CACHE_TTL) * 60
             );
@@ -220,6 +226,13 @@ class BlockBestSellers extends Module
                         'label' => $this->l('Products to display'),
                         'name'  => static::BESTSELLERS_TO_DISPLAY,
                         'desc'  => $this->l('Determine the number of product to display in this block'),
+                        'class' => 'fixed-width-xs',
+                    ],
+                    [
+                        'type'  => 'text',
+                        'label' => $this->l('Products with price above'),
+                        'name'  => static::BESTSELLERS_PRICE_ABOVE,
+                        'desc'  => $this->l('Display only products with price higher than defined in this block, 0 for displaying all products'),
                         'class' => 'fixed-width-xs',
                     ],
                     [
@@ -293,6 +306,10 @@ class BlockBestSellers extends Module
                 static::BESTSELLERS_TO_DISPLAY,
                 Configuration::get(static::BESTSELLERS_TO_DISPLAY)
             ),
+            static::BESTSELLERS_PRICE_ABOVE => (double) Tools::getValue(
+                static::BESTSELLERS_PRICE_ABOVE,
+                Configuration::get(static::BESTSELLERS_PRICE_ABOVE)
+            ),
             static::BESTSELLERS_DISPLAY    => (int) Tools::getValue(
                 static::BESTSELLERS_DISPLAY,
                 Configuration::get(static::BESTSELLERS_DISPLAY)
@@ -354,10 +371,11 @@ class BlockBestSellers extends Module
             return false;
         }
 
-        if (!($result = ProductSale::getBestSalesLight(
+        if (!($result = $this->getBestSalesLight(
             (int) $this->context->language->id,
             0,
-            (int) Configuration::get(static::BESTSELLERS_TO_DISPLAY)))
+            (int) Configuration::get(static::BESTSELLERS_TO_DISPLAY),
+            Configuration::get(static::BESTSELLERS_PRICE_ABOVE)))
         ) {
             return (Configuration::get(static::BESTSELLERS_DISPLAY) ? [] : false);
         }
@@ -369,6 +387,71 @@ class BlockBestSellers extends Module
         }
 
         return $result;
+    }
+    
+        /**
+     * Get required informations on best sales products
+     *
+     * @param int $idLang     Language id
+     * @param int $pageNumber Start from (optional)
+     * @param int $nbProducts Number of products to return (optional)
+     *
+     * @return array keys : id_product, link_rewrite, name, id_image, legend, sales, ean13, upc, link
+     */
+    private function getBestSalesLight($idLang, $pageNumber = 0, $nbProducts = 10, $priceAbove = 0)
+    {
+        if ($pageNumber < 0) {
+            $pageNumber = 0;
+        }
+        if ($nbProducts < 1) {
+            $nbProducts = 10;
+        }
+        // no group by needed : there's only one attribute with default_on=1 for a given id_product + shop
+        // same for image with cover=1
+        $sql = '
+        SELECT
+            p.id_product, IFNULL(product_attribute_shop.id_product_attribute,0) id_product_attribute, pl.`link_rewrite`, pl.`name`, pl.`description_short`, product_shop.`id_category_default`,
+            image_shop.`id_image` id_image, il.`legend`,
+            ps.`quantity` AS sales, p.`ean13`, p.`upc`, cl.`link_rewrite` AS category, p.show_price, p.available_for_order, IFNULL(stock.quantity, 0) as quantity, p.customizable,
+            IFNULL(pa.minimal_quantity, p.minimal_quantity) as minimal_quantity, stock.out_of_stock,
+            product_shop.`date_add` > "'.date('Y-m-d', strtotime('-'.(Configuration::get('PS_NB_DAYS_NEW_PRODUCT') ? (int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') : 20).' DAY')).'" as new,
+            product_shop.`on_sale`, product_attribute_shop.minimal_quantity AS product_attribute_minimal_quantity
+        FROM `'._DB_PREFIX_.'product_sale` ps
+        LEFT JOIN `'._DB_PREFIX_.'product` p ON ps.`id_product` = p.`id_product`
+        '.Shop::addSqlAssociation('product', 'p').'
+        LEFT JOIN `'._DB_PREFIX_.'product_attribute_shop` product_attribute_shop
+            ON (p.`id_product` = product_attribute_shop.`id_product` AND product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop='.(int) $this->context->shop->id.')
+        LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa ON (product_attribute_shop.id_product_attribute=pa.id_product_attribute)
+        LEFT JOIN `'._DB_PREFIX_.'product_lang` pl
+            ON p.`id_product` = pl.`id_product`
+            AND pl.`id_lang` = '.(int) $idLang.Shop::addSqlRestrictionOnLang('pl').'
+        LEFT JOIN `'._DB_PREFIX_.'image_shop` image_shop
+            ON (image_shop.`id_product` = p.`id_product` AND image_shop.cover=1 AND image_shop.id_shop='.(int) $this->context->shop->id.')
+        LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = '.(int) $idLang.')
+        LEFT JOIN `'._DB_PREFIX_.'category_lang` cl
+            ON cl.`id_category` = product_shop.`id_category_default`
+            AND cl.`id_lang` = '.(int) $idLang.Shop::addSqlRestrictionOnLang('cl').Product::sqlStock('p', 0);
+        // WHERE product_shop.`active` = 1 // this will never get into current query!
+		$sql .= '
+        WHERE product_shop.`active` = 1
+        AND p.`visibility` != \'none\'
+		AND p.`active` = 1
+		AND p.`available_for_order` = 1
+		';
+        $sql .= ($priceAbove > 0 ? ' AND p.`price` > ' . (double) $priceAbove : '');
+        if (Group::isFeatureActive()) {
+            $groups = FrontController::getCurrentCustomerGroups();
+            $sql .= ' AND EXISTS(SELECT 1 FROM `'._DB_PREFIX_.'category_product` cp
+                JOIN `'._DB_PREFIX_.'category_group` cg ON (cp.id_category = cg.id_category AND cg.`id_group` '.(count($groups) ? 'IN ('.implode(',', $groups).')' : '= 1').')
+                WHERE cp.`id_product` = p.`id_product`)';
+        }
+        $sql .= '
+        ORDER BY ps.quantity DESC
+        LIMIT '.(int) ($pageNumber * $nbProducts).', '.(int) $nbProducts;
+        if (!$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql)) {
+            return false;
+        }
+        return Product::getProductsProperties($idLang, $result);
     }
 
     /**
