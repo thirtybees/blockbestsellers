@@ -3,20 +3,20 @@ compatible_versions: 1.0.0+
 author: thirty bees
 category: front office
 tags:
-- advertising
-- products
-- best sellers
-- best sales
-- blockbestsellers
+  - advertising
+  - products
+  - best sellers
+  - best sales
+  - blockbestsellers
 description_short: The block best sellers module allows you to place best selling products on your home page or right and left columns of your site.
 description: description.md
 images:
-- image-1.png
+  - image-1.png
 gdpr_compliant: true
 license: MIT
 php_version:
-- 5.5
-- 5.6
-- 7.0
-- 7.1
-- 7.2
+  - 5.5
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2

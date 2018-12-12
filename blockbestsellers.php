@@ -39,7 +39,7 @@ class BlockBestSellers extends Module
     const BESTSELLERS_DISPLAY = 'PS_BLOCK_BESTSELLERS_DISPLAY';
     const BESTSELLERS_TO_DISPLAY = 'PS_BLOCK_BESTSELLERS_TO_DISPLAY';
     const BESTSELLERS_PRICE_ABOVE = 'PS_BLOCK_BESTSELLERS_PRICE_ABOVE';
-    
+
     protected static $cacheBestSellers;
 
     /**
@@ -52,7 +52,7 @@ class BlockBestSellers extends Module
     {
         $this->name = 'blockbestsellers';
         $this->tab = 'front_office_features';
-        $this->version = '2.1.3';
+        $this->version = '2.1.2';
         $this->author = 'thirty bees';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -388,8 +388,8 @@ class BlockBestSellers extends Module
 
         return $result;
     }
-    
-        /**
+
+    /**
      * Get required informations on best sales products
      *
      * @param int $idLang     Language id
