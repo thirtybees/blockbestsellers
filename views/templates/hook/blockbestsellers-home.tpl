@@ -22,18 +22,20 @@
  * PrestaShop is an internationally registered trademark of PrestaShop SA.
  *}
 
-<!-- MODULE Block best sellers -->
+
+<!-- MODULE Home Featured Products -->
+
 <div class="tm-home col-xs-12">
-{if isset($best_sellers) && $best_sellers}
-  <div class="tm-hp text-center">
-    <h2><span class="tm-over">{l s='What others' mod='blockbestsellers'} <span>{l s='love' mod='blockbestsellers'}</span> {l s='most'}</span></h2>
-    <p>{l s='Browse our top selling products.' mod='blockbestsellers'}</p>
-  </div>
-  {include file="$tpl_dir./product-list.tpl" products=$best_sellers class='blockbestsellers' id='blockbestsellers'}
+{if isset($products) && $products}
+	<div class="tm-hp text-center">
+	<h2><span class="tm-over">{l s='Our' mod='homefeatured'} <span>{l s='featured' mod='homefeatured'}</span> {l s='Products'}</span></h2>
+	<p>{l s='Browse our featured products.' mod='homefeatured'}</p>
+	</div>
+	{include file="$tpl_dir./product-list.tpl" class='homefeatured tab-pane' id='homefeatured'}
 {else}
-  <ul id="blockbestsellers" class="blockbestsellers">
-    <li class="alert alert-info">{l s='No best sellers at this time.' mod='blockbestsellers'}</li>
-  </ul>
+<ul id="homefeatured" class="homefeatured tab-pane">
+	<li class="alert alert-info">{l s='No featured products at this time.' mod='homefeatured'}</li>
+</ul>
 {/if}
 </div>
-<!-- /MODULE Block best sellers -->
+<!-- /MODULE Home Featured Products -->
