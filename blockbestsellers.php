@@ -87,14 +87,13 @@ class BlockBestSellers extends Module
             || !$this->registerHook('addproduct')
             || !$this->registerHook('updateproduct')
             || !$this->registerHook('deleteproduct')
-            || !$this->registerHook('displayHomeTab')
-            || !$this->registerHook('displayHomeTabContent')
+            || !$this->registerHook('displayHome')
             || !ProductSale::fillProductSales()
         ) {
             return false;
         }
 
-        Configuration::updateValue(static::BESTSELLERS_TO_DISPLAY, 10);
+        Configuration::updateValue(static::BESTSELLERS_TO_DISPLAY, 4);
         Configuration::updateValue(static::BESTSELLERS_PRICE_ABOVE, 0);
 
         return true;
