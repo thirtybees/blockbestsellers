@@ -23,11 +23,17 @@
  *}
 
 <!-- MODULE Block best sellers -->
+<div class="tm-home col-xs-12">
 {if isset($best_sellers) && $best_sellers}
-  {include file="$tpl_dir./product-list.tpl" products=$best_sellers class='blockbestsellers tab-pane' id='blockbestsellers'}
+  <div class="tm-hp text-center">
+    <h2><span class="tm-over">{l s='What others' mod='blockbestsellers'} <span>{l s='love' mod='blockbestsellers'}</span> {l s='most'}</span></h2>
+    <p>{l s='Browse our top selling products.' mod='blockbestsellers'}</p>
+  </div>
+  {include file="$tpl_dir./product-list.tpl" products=$best_sellers class='blockbestsellers' id='blockbestsellers'}
 {else}
-  <ul id="blockbestsellers" class="blockbestsellers tab-pane">
+  <ul id="blockbestsellers" class="blockbestsellers">
     <li class="alert alert-info">{l s='No best sellers at this time.' mod='blockbestsellers'}</li>
   </ul>
 {/if}
+</div>
 <!-- /MODULE Block best sellers -->
