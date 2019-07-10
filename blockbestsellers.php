@@ -480,6 +480,7 @@ class BlockBestSellers extends Module
     public function hookDisplayHome()
     {
         if (!$this->isCached('blockbestsellers-home.tpl', $this->getCacheId('blockbestsellers-home'))) {
+            self::$cacheBestSellers = $this->getBestSellers();
             $this->smarty->assign(
                 [
                     'best_sellers' => self::$cacheBestSellers,
