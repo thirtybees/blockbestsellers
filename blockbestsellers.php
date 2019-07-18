@@ -79,20 +79,22 @@ class BlockBestSellers extends Module
     public function install()
     {
         $this->clearCache();
-        Configuration::updateValue(static::NUMBER, 4);
-        Configuration::updateValue(static::CATEGORY_ID, (int) Context::getContext()->shop->getCategory());
-        Configuration::updateValue(static::RANDOMIZE, false);
 
-        if (!parent::install()) {
+        if (!parent::install()
+            || !$this->registerHook('header')
+            || !$this->registerHook('leftColumn')
+            || !$this->registerHook('actionOrderStatusPostUpdate')
+            || !$this->registerHook('addproduct')
+            || !$this->registerHook('updateproduct')
+            || !$this->registerHook('deleteproduct')
+            || !$this->registerHook('displayHome')
+            || !ProductSale::fillProductSales()
+        ) {
             return false;
         }
 
-        $this->registerHook('header');
-        $this->registerHook('addproduct');
-        $this->registerHook('updateproduct');
-        $this->registerHook('deleteproduct');
-        $this->registerHook('categoryUpdate');
-        $this->registerHook('displayHome');
+        Configuration::updateValue(static::BESTSELLERS_TO_DISPLAY, 4);
+        Configuration::updateValue(static::BESTSELLERS_PRICE_ABOVE, 0);
 
         return true;
     }
