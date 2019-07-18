@@ -23,8 +23,7 @@
  *}
 
 
-<!-- MODULE Home Featured Products -->
-
+<!-- MODULE Block best sellers -->
 <div class="tm-home col-xs-12">
 {if isset($products) && $products}
 	<div class="tm-hp text-center">
@@ -38,4 +37,4 @@
 </ul>
 {/if}
 </div>
-<!-- /MODULE Home Featured Products -->
+<!-- /MODULE Block best sellers -->
