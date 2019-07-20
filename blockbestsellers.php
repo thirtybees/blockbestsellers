@@ -88,6 +88,8 @@ class BlockBestSellers extends Module
             || !$this->registerHook('updateproduct')
             || !$this->registerHook('deleteproduct')
             || !$this->registerHook('displayHome')
+            || !$this->registerHook('displayHomeTab')
+            || !$this->registerHook('displayHomeTabContent')
             || !ProductSale::fillProductSales()
         ) {
             return false;
