@@ -39,11 +39,6 @@ class BlockBestSellers extends Module
     const BESTSELLERS_PRICE_ABOVE = 'PS_BLOCK_BESTSELLERS_PRICE_ABOVE';
 
     /**
-     * @var array|false|null
-     */
-    protected static $cacheBestSellers;
-
-    /**
      * BlockBestSellers constructor.
      *
      * @throws PrestaShopException
@@ -349,23 +344,41 @@ class BlockBestSellers extends Module
     public function hookDisplayHomeTab()
     {
         if (!$this->isCached('tab.tpl', $this->getCacheId('blockbestsellers-tab'))) {
-            self::$cacheBestSellers = $this->getBestSellers();
-            $this->smarty->assign('best_sellers', self::$cacheBestSellers);
-        }
-
-        if (self::$cacheBestSellers === false) {
-            return false;
+            $bestSellers = $this->getBestSellers();
+            if ($bestSellers === false) {
+                return false;
+            }
+            $this->smarty->assign('best_sellers', $bestSellers);
         }
 
         return $this->display(__FILE__, 'tab.tpl', $this->getCacheId('blockbestsellers-tab'));
     }
 
     /**
+     * Returns bestsellers products, using cache
+     *
      * @return array|bool
      *
      * @throws PrestaShopException
      */
     protected function getBestSellers()
+    {
+        static $cache = null;
+        if (is_null($cache)) {
+            $cache = $this->resolveBestSellers();
+        }
+        return $cache;
+    }
+
+    /**
+     * Returns bestsellers products without using cache
+     *
+     * @return array|false
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    protected function resolveBestSellers()
     {
         if (Configuration::get('PS_CATALOG_MODE')) {
             return false;
@@ -479,18 +492,17 @@ class BlockBestSellers extends Module
      */
     public function hookDisplayHome()
     {
-        if (!$this->isCached('blockbestsellers-home.tpl', $this->getCacheId('blockbestsellers-home'))) {
-            self::$cacheBestSellers = $this->getBestSellers();
+        if (! $this->isCached('blockbestsellers-home.tpl', $this->getCacheId('blockbestsellers-home'))) {
+            $bestSellers = $this->getBestSellers();
+            if ($bestSellers === false) {
+                return false;
+            }
             $this->smarty->assign(
                 [
-                    'best_sellers' => self::$cacheBestSellers,
-                    'homeSize'     => Image::getSize(ImageType::getFormatedName('home')),
+                    'best_sellers' => $bestSellers,
+                    'homeSize' => Image::getSize(ImageType::getFormatedName('home')),
                 ]
             );
-        }
-
-        if (self::$cacheBestSellers === false) {
-            return false;
         }
 
         return $this->display(
@@ -522,21 +534,18 @@ class BlockBestSellers extends Module
     public function hookRightColumn()
     {
         if (!$this->isCached('blockbestsellers.tpl', $this->getCacheId('blockbestsellers-col'))) {
-            if (!isset(self::$cacheBestSellers)) {
-                self::$cacheBestSellers = $this->getBestSellers();
+            $bestSellers = $this->getBestSellers();
+            if ($bestSellers === false) {
+                return false;
             }
             $this->smarty->assign(
                 [
-                    'best_sellers'             => self::$cacheBestSellers,
+                    'best_sellers'             => $bestSellers,
                     'display_link_bestsellers' => Configuration::get(static::BESTSELLERS_DISPLAY),
                     'mediumSize'               => Image::getSize(ImageType::getFormatedName('medium')),
                     'smallSize'                => Image::getSize(ImageType::getFormatedName('small')),
                 ]
             );
-        }
-
-        if (self::$cacheBestSellers === false) {
-            return false;
         }
 
         return $this->display(__FILE__, 'blockbestsellers.tpl', $this->getCacheId('blockbestsellers-col'));
