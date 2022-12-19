@@ -29,8 +29,6 @@ if (!defined('_TB_VERSION_')) {
 
 /**
  * Class BlockBestSellers
- *
- * @since 1.0.0
  */
 class BlockBestSellers extends Module
 {
@@ -40,12 +38,14 @@ class BlockBestSellers extends Module
     const BESTSELLERS_TO_DISPLAY = 'PS_BLOCK_BESTSELLERS_TO_DISPLAY';
     const BESTSELLERS_PRICE_ABOVE = 'PS_BLOCK_BESTSELLERS_PRICE_ABOVE';
 
+    /**
+     * @var array|false|null
+     */
     protected static $cacheBestSellers;
 
     /**
      * BlockBestSellers constructor.
      *
-     * @since 1.0.0
      * @throws PrestaShopException
      */
     public function __construct()
@@ -74,7 +74,6 @@ class BlockBestSellers extends Module
      *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @since 1.0.0
      */
     public function install()
     {
@@ -102,7 +101,8 @@ class BlockBestSellers extends Module
     }
 
     /**
-     * @since 1.0.0
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function clearCache()
     {
@@ -128,7 +128,6 @@ class BlockBestSellers extends Module
      *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @since 1.0.0
      */
     public function uninstall()
     {
@@ -138,7 +137,8 @@ class BlockBestSellers extends Module
     }
 
     /**
-     * @since 1.0.0
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function hookAddProduct()
     {
@@ -146,7 +146,8 @@ class BlockBestSellers extends Module
     }
 
     /**
-     * @since 1.0.0
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function hookUpdateProduct()
     {
@@ -154,7 +155,8 @@ class BlockBestSellers extends Module
     }
 
     /**
-     * @since 1.0.0
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function hookDeleteProduct()
     {
@@ -162,7 +164,8 @@ class BlockBestSellers extends Module
     }
 
     /**
-     * @since 1.0.0
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function hookActionOrderStatusPostUpdate()
     {
@@ -173,7 +176,7 @@ class BlockBestSellers extends Module
      * Called in administration -> module -> configure
      *
      * @return string
-     * @throws Exception
+     *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws SmartyException
@@ -208,11 +211,9 @@ class BlockBestSellers extends Module
     /**
      * @return string
      *
-     * @throws Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws SmartyException
-     * @since 1.0.0
      */
     public function renderForm()
     {
@@ -298,7 +299,6 @@ class BlockBestSellers extends Module
     /**
      * @return array
      *
-     * @since 1.0.0
      * @throws PrestaShopException
      */
     public function getConfigFieldsValues()
@@ -324,7 +324,6 @@ class BlockBestSellers extends Module
     }
 
     /**
-     * @since 1.0.0
      * @throws PrestaShopException
      */
     public function hookHeader()
@@ -341,11 +340,9 @@ class BlockBestSellers extends Module
     /**
      * @return bool|string
      *
-     * @throws Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws SmartyException
-     * @since 1.0.0
      */
     public function hookDisplayHomeTab()
     {
@@ -364,7 +361,6 @@ class BlockBestSellers extends Module
     /**
      * @return array|bool
      *
-     * @since 1.0.0
      * @throws PrestaShopException
      */
     protected function getBestSellers()
@@ -394,11 +390,15 @@ class BlockBestSellers extends Module
     /**
      * Get required informations on best sales products
      *
-     * @param int $idLang     Language id
+     * @param int $idLang Language id
      * @param int $pageNumber Start from (optional)
      * @param int $nbProducts Number of products to return (optional)
+     * @param int $priceAbove
      *
-     * @return array keys : id_product, link_rewrite, name, id_image, legend, sales, ean13, upc, link
+     * @return array|false keys : id_product, link_rewrite, name, id_image, legend, sales, ean13, upc, link
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     private function getBestSalesLight($idLang, $pageNumber = 0, $nbProducts = 10, $priceAbove = 0)
     {
@@ -459,11 +459,9 @@ class BlockBestSellers extends Module
     /**
      * @return bool|string
      *
-     * @throws Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws SmartyException
-     * @since 1.0.0
      */
     public function hookDisplayHomeTabContent()
     {
@@ -473,11 +471,9 @@ class BlockBestSellers extends Module
     /**
      * @return bool|string
      *
-     * @throws Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws SmartyException
-     * @since 1.0.0
      */
     public function hookDisplayHome()
     {
@@ -505,11 +501,9 @@ class BlockBestSellers extends Module
     /**
      * @return bool|string
      *
-     * @throws Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws SmartyException
-     * @since 1.0.0
      */
     public function hookLeftColumn()
     {
@@ -519,11 +513,9 @@ class BlockBestSellers extends Module
     /**
      * @return bool|string
      *
-     * @throws Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @throws SmartyException
-     * @since 1.0.0
      */
     public function hookRightColumn()
     {

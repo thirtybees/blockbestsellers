@@ -27,6 +27,12 @@ if (!defined('_TB_VERSION_')) {
     exit;
 }
 
+/**
+ * @param BlockBestSellers $module
+ *
+ * @return true
+ * @throws PrestaShopException
+ */
 function upgrade_module_2_1_0($module)
 {
     Configuration::updateValue('PS_BLOCK_BESTSELLERS_TTL', 300); // Cache for max 5 minutes
