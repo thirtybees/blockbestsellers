@@ -396,7 +396,8 @@ class BlockBestSellers extends Module
         $currency = new Currency($this->context->currency->id);
         $usetax = (Product::getTaxCalculationMethod((int) $this->context->customer->id) != PS_TAX_EXC);
         foreach ($result as &$row) {
-            $row['price'] = Tools::displayPrice(Product::getPriceStatic((int) $row['id_product'], $usetax), $currency);
+            $row['price_raw'] = Tools::roundPrice(Product::getPriceStatic((int) $row['id_product'], $usetax));
+            $row['price'] = Tools::displayPrice($row['price_raw'], $currency);
         }
 
         return $result;
