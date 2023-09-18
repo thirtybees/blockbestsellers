@@ -47,7 +47,7 @@ class BlockBestSellers extends Module
     {
         $this->name = 'blockbestsellers';
         $this->tab = 'front_office_features';
-        $this->version = '2.2.4';
+        $this->version = '2.2.5';
         $this->author = 'thirty bees';
         $this->need_instance = 0;
         $this->bootstrap = true;
