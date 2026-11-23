@@ -190,7 +190,7 @@ class BlockBestSellers extends Module
             );
             Configuration::updateValue(
                 static::BESTSELLERS_PRICE_ABOVE,
-                (double) Tools::getValue(static::BESTSELLERS_PRICE_ABOVE)
+                (float) Tools::getValue(static::BESTSELLERS_PRICE_ABOVE)
             );
             Configuration::updateValue(
                 static::CACHE_TTL,
@@ -305,7 +305,7 @@ class BlockBestSellers extends Module
                 static::BESTSELLERS_TO_DISPLAY,
                 Configuration::get(static::BESTSELLERS_TO_DISPLAY)
             ),
-            static::BESTSELLERS_PRICE_ABOVE => (double) Tools::getValue(
+            static::BESTSELLERS_PRICE_ABOVE => (float) Tools::getValue(
                 static::BESTSELLERS_PRICE_ABOVE,
                 Configuration::get(static::BESTSELLERS_PRICE_ABOVE)
             ),
@@ -456,7 +456,7 @@ class BlockBestSellers extends Module
 		AND p.`active` = 1
 		AND p.`available_for_order` = 1
 		';
-        $sql .= ($priceAbove > 0 ? ' AND p.`price` > ' . (double) $priceAbove : '');
+        $sql .= ($priceAbove > 0 ? ' AND p.`price` > ' . (float) $priceAbove : '');
         if (Group::isFeatureActive()) {
             $groups = FrontController::getCurrentCustomerGroups();
             $sql .= ' AND EXISTS(SELECT 1 FROM `'._DB_PREFIX_.'category_product` cp
